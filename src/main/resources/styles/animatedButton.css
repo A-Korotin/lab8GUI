@@ -1,0 +1,35 @@
+.button {
+    -fx-cursor: pointer;
+    -fx-background: transparent;
+    -fx-border-style: 1px solid #91C9FF;
+    -fx-outline: none;
+    -fx-transition: 1s ease-in-out;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+}
+
+svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    fill: none;
+    stroke: #fff;
+    stroke-dasharray: 150 480;
+    stroke-dashoffset: 150;
+    transition: 1s ease-in-out;
+}
+
+.button:hover {
+    -fx-transition: 1s ease-in-out;
+    -fx-background: #4F95DA;
+}
+
+.button:hover svg {
+    -fx-stroke-dashoffset: -480;
+}
+
+.button span {
+    -fx-color: white;
+    -fx-font-size: 18px;
+    -fx-font-weight: 100;
+}

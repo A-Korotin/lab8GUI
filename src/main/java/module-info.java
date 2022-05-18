@@ -21,4 +21,6 @@ module com.example.jfxtest {
     exports commands.dependencies;
     exports io;
     exports dragon;
+    exports gui.controller;
+    opens gui.controller to javafx.fxml;
 }
