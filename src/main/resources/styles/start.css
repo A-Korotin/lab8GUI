@@ -1,0 +1,13 @@
+#pane {
+    -fx-background-image: url("cs_logo.png");
+    -fx-background-color: black;
+}
+
+.root-front {
+    -fx-background-color: RED;
+}
+
+.root-mid {
+    -fx-background-color: #750000;
+    -fx-background-image: url("cs_logo.png");
+}

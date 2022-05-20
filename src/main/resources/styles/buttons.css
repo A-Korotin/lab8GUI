@@ -1,0 +1,6 @@
+.button-sign-in {
+    -fx-background-color: #E45652;
+    -fx-font-family: "Roboto Light";
+    -fx-font-size: 17;
+    -fx-text-fill: WHITE;
+}

@@ -8,7 +8,7 @@ import javafx.scene.text.Text;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class StartWindowController implements Initializable {
+public class StartWindowController extends Controller implements Initializable {
 
     private final String[] languages = {"Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
 

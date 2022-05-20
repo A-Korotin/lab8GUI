@@ -1,0 +1,16 @@
+.choice-box .arrow {
+    -fx-background-color: WHITE;
+}
+.choice-box .label {
+    -fx-text-fill: WHITE;
+    -fx-font-family: "Roboto Light";
+
+}
+
+.choice-box .context-menu {
+    -fx-background-color: #E45652;
+}
+
+.choice-box {
+    -fx-background-color: #E45652;
+}
