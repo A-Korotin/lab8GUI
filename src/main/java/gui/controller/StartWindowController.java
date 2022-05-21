@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.text.Text;
+import locales.Locale;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -11,6 +12,11 @@ import java.util.ResourceBundle;
 public class StartWindowController extends Controller implements Initializable {
 
     private final String[] languages = {"Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
+
+    @Override
+    protected void localize() {
+
+    }
 
     @FXML
     private Text info_field;

@@ -1,7 +1,20 @@
 package gui.controller.context;
 
-import java.util.Locale;
+import locales.Locale;
+import net.Client;
+import net.auth.User;
+
+import java.io.IOException;
 
 public class Context {
-    public Locale locale = null;
+    static {
+        try {
+            client = new Client("localhost", 4444);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static Locale locale = null;
+    public static Client client;
+    public static User user = null;
 }

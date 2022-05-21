@@ -3,11 +3,11 @@
     -fx-background-color: black;
 }
 
-.root-front {
-    -fx-background-color: RED;
+.root-front-dark {
+    -fx-background-color: #9C2B27;
 }
 
-.root-mid {
-    -fx-background-color: #750000;
+.root-back-dark {
+    -fx-background-color:  #20120F;
     -fx-background-image: url("cs_logo.png");
 }

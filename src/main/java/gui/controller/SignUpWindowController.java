@@ -1,5 +1,6 @@
 package gui.controller;
 
+import gui.controller.context.Context;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -8,6 +9,8 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
+import locales.Locale;
 
 import java.io.IOException;
 import java.net.URL;
@@ -28,15 +31,10 @@ public class SignUpWindowController extends Controller implements Initializable 
     private Button signUpButton;
     @FXML
     private Button backButton;
-    @FXML
-    private ChoiceBox<String> languageBox;
 
-    private final String[] languages = {"Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        languageBox.getItems().addAll(languages);
-        languageBox.setValue("Language");
     }
 
     public void backButtonClicked(ActionEvent event) throws IOException {
@@ -47,4 +45,14 @@ public class SignUpWindowController extends Controller implements Initializable 
 
     }
 
+    @Override
+    protected void localize() {
+        welcomeText.setText(Context.locale.getMsg("welcome"));
+        signUpText.setText(Context.locale.getMsg("sign_up"));
+        backButton.setText(Context.locale.getMsg("back"));
+        signUpButton.setText(Context.locale.getMsg("sign_up"));
+        loginField.setPromptText(Context.locale.getMsg("login"));
+        passwordField.setPromptText(Context.locale.getMsg("password"));
+        repeatPasswordField.setPromptText(Context.locale.getMsg("repeat_password"));
+    }
 }

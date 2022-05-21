@@ -1,5 +1,9 @@
 package net;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import commands.Command;
+import commands.dependencies.CommandProperties;
+import exceptions.InvalidValueException;
 import exceptions.ResponseTimeoutException;
 import json.Json;
 
@@ -66,6 +70,21 @@ public final class Client {
         }
 
         throw new ResponseTimeoutException();
+    }
+
+    public Response sendCommand(Command command, long timeout) {
+        try {
+            CommandProperties properties = command.getProperties(null);
+            Request request = new Request();
+            request.properties = properties;
+            request.user = command.user;
+            String requestJson = Json.stringRepresentation(Json.toJson(request), true);
+            return sendAndReceiveResponse(requestJson, timeout);
+        } catch (InvalidValueException | IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("ERROR!");
+        }
+
     }
 
     private String attachInput(List<String> input) {

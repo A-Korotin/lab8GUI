@@ -4,3 +4,12 @@
     -fx-font-size: 17;
     -fx-text-fill: WHITE;
 }
+
+.button-sign-in:pressed {
+    -fx-background-color: #27968D;
+    -fx-text-fill: #634342;
+}
+
+.button-sign-in:hover {
+    -fx-background-color: #E89B99;
+}

@@ -1,27 +1,35 @@
 package gui.controller;
 
+import collection.DAO;
+import collection.DragonDAO;
 import dragon.*;
+import io.FileManipulator;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import locales.Locale;
 
+import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class TableWindowController implements Initializable {
+public class TableWindowController extends Controller implements Initializable {
 
     @FXML
     private TableView<Dragon> table;
 
-    private static final float WINDOW_WIDTH = 1280F;
-    private static final int N_COLUMNS = 10;
+    @Override
+    protected void localize() {
+
+    }
 
     private Column[] columns = {
             new Column("id", null),
@@ -79,8 +87,17 @@ public class TableWindowController implements Initializable {
         Dragon dragon1 = new Dragon(2, "hello world", new Coordinates(2F, 10), LocalDate.now(),
                 1L, Color.BLACK, DragonType.FIRE, DragonCharacter.CHAOTIC_EVIL, new DragonCave(10000, 1));
         dragon1.setCreatorName("admin");
+
+        Dragon dragon2 = new Dragon(3, "John", new Coordinates(14214F, -21414), LocalDate.now(),
+                4214124L, Color.BLUE, DragonType.AIR, DragonCharacter.GOOD, new DragonCave(4214, null));
+        dragon2.setCreatorName("qwerty");
+        Dragon dragon3 = new Dragon(4, "Henry", new Coordinates(-123F, 444444444), LocalDate.now(),
+                4214124421L, Color.WHITE, DragonType.UNDERGROUND, DragonCharacter.FICKLE, new DragonCave(-41, 4214124));
+        dragon3.setCreatorName("qwerty");
         out.add(dragon);
         out.add(dragon1);
+        out.add(dragon2);
+        out.add(dragon3);
         return out;
         // FIXME: 18.05.2022 database loading
     }
@@ -103,6 +120,14 @@ public class TableWindowController implements Initializable {
 
             return out;
         }
+    }
+
+    public void logout(ActionEvent event) throws IOException {
+        switchScene(event, "/gui/signInWindow.fxml");
+    }
+
+    public void visualization(ActionEvent event) throws IOException {
+        switchScene(event, "/gui/visualizationWindow.fxml");
     }
 
 }

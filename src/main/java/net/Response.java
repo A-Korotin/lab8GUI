@@ -50,9 +50,15 @@ public final class Response {
         return this;
     }
 
-
-
-    // For Jackson to work properly
+    @Override
+    public String toString() {
+        return "Response{" +
+                "eventCodes=" + eventCodes +
+                ", exitCode=" + exitCode +
+                ", info='" + info + '\'' +
+                '}';
+    }
+// For Jackson to work properly
 
     public List<EventCode> getEventCodes() {
         return eventCodes;
