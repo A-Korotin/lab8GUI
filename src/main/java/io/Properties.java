@@ -53,4 +53,20 @@ public final class Properties {
 
         return properties;
     }
+
+    @Override
+    public String toString() {
+        return "Properties{" +
+                "name='" + name + '\'' +
+                ", xCoord=" + xCoord +
+                ", yCoord=" + yCoord +
+                ", age=" + age +
+                ", color=" + color +
+                ", type=" + type +
+                ", character=" + character +
+                ", depth=" + depth +
+                ", numberOfTreasures=" + numberOfTreasures +
+                ", creator_name='" + creator_name + '\'' +
+                '}';
+    }
 }

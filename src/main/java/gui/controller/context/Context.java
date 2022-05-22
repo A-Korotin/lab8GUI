@@ -16,5 +16,5 @@ public class Context {
     }
     public static Locale locale = null;
     public static Client client;
-    public static User user = null;
+    public static User user = new User("admin", "");
 }

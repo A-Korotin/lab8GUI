@@ -15,6 +15,7 @@ import locales.Locale;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.function.Consumer;
 
 public abstract class Controller {
 
@@ -37,6 +38,22 @@ public abstract class Controller {
         stage.setScene(scene);
         Node mainAnchorRoot = scene.getRoot().getChildrenUnmodifiable().get(0);
         fadeIn(mainAnchorRoot, Duration.millis(700));
+    }
+
+    public final<T> T openNewWindow(String sceneFile) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(Context.class.getResource(sceneFile));
+        Stage stage = new Stage();
+        Scene scene = new Scene(loader.load());
+        stage.setScene(scene);
+
+        stage.setTitle("lab8");
+        if (Context.locale != null) {
+            Controller controller = loader.getController();
+            controller.localize();
+        }
+        stage.showAndWait();
+        return loader.getController();
     }
     public final void fadeIn(Node node, Duration duration) {
         FadeTransition transition = new FadeTransition(duration);

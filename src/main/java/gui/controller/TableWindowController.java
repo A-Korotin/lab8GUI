@@ -1,19 +1,16 @@
 package gui.controller;
 
-import collection.DAO;
-import collection.DragonDAO;
 import dragon.*;
-import io.FileManipulator;
+import gui.controller.context.Context;
+import io.Properties;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import locales.Locale;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.net.URL;
@@ -22,12 +19,37 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class TableWindowController extends Controller implements Initializable {
-
+    @FXML
+    private Button logoutButton;
+    @FXML
+    private Button visualizationButton;
+    @FXML
+    private Button addButton;
+    @FXML
+    private Button updateButton;
+    @FXML
+    private Button removeButton;
+    @FXML
+    private Text helloText;
+    @FXML
+    private ChoiceBox<String> propertyBox;
+    @FXML
+    private TextField filterField;
     @FXML
     private TableView<Dragon> table;
 
+    private List<Dragon> tableItems;
+
     @Override
     protected void localize() {
+        logoutButton.setText(Context.locale.getMsg("logout"));
+        visualizationButton.setText(Context.locale.getMsg("visualization"));
+        addButton.setText(Context.locale.getMsg("add"));
+        updateButton.setText(Context.locale.getMsg("update"));
+        removeButton.setText(Context.locale.getMsg("remove"));
+        helloText.setText("%s, %s!".formatted(Context.locale.getMsg("hello"), Context.user.login));
+        filterField.setPromptText(Context.locale.getMsg("filter"));
+        propertyBox.setValue(Context.locale.getMsg("filter"));
 
     }
 
@@ -68,6 +90,7 @@ public class TableWindowController extends Controller implements Initializable {
             new Column("creator name", col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCreatorName())))
     };
 
+    private final String[] filterProperties = {"name", "creator name"};
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // load cols
@@ -75,9 +98,23 @@ public class TableWindowController extends Controller implements Initializable {
         table.getColumns().forEach(col -> col.setPrefWidth(120));
 
         // fill table
-        table.setItems(FXCollections.observableList(getData()));
+        tableItems = getData();
+        table.setItems(FXCollections.observableList(tableItems));
+
+        propertyBox.getItems().addAll(filterProperties);
     }
 
+    public void reloadTable(List<Dragon> items) {
+        //TODO test
+        table.getItems().clear();
+        table.getItems().addAll(items);
+    }
+
+    public void addElement(Dragon dragon) {
+        // FIXME: 22.05.2022 doubles element
+        table.getItems().add(dragon);
+        tableItems.add(dragon);
+    }
 
     private List<Dragon> getData() {
         List<Dragon> out = new ArrayList<>();
@@ -128,6 +165,23 @@ public class TableWindowController extends Controller implements Initializable {
 
     public void visualization(ActionEvent event) throws IOException {
         switchScene(event, "/gui/visualizationWindow.fxml");
+    }
+
+    public void add(ActionEvent event) throws IOException {
+        RequestWindowController controller = openNewWindow("/gui/request.fxml");
+        //switchScene(event, "/gui/request.fxml");
+        Properties properties = controller.getProperties();
+        if(properties == null)
+            return;
+        addElement(new Dragon(-1, properties));
+    }
+
+    public void update(ActionEvent event) throws IOException {
+        switchScene(event, "/gui/request.fxml");
+    }
+
+    public void remove(ActionEvent event) throws IOException {
+        switchScene(event, "/gui/request.fxml");
     }
 
 }
