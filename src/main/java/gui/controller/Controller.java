@@ -9,6 +9,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import locales.Locale;
@@ -40,21 +41,48 @@ public abstract class Controller {
         fadeIn(mainAnchorRoot, Duration.millis(700));
     }
 
-    public final<T> T openNewWindow(String sceneFile) throws IOException {
+//    public final<T> T openNewWindow(String sceneFile) throws IOException {
+//        FXMLLoader loader = new FXMLLoader();
+//        loader.setLocation(Context.class.getResource(sceneFile));
+//        Stage stage = new Stage();
+//        Scene scene = new Scene(loader.load());
+//        stage.setScene(scene);
+//
+//        stage.setTitle("lab8");
+//        if (Context.locale != null) {
+//            Controller controller = loader.getController();
+//            controller.localize();
+//        }
+//        stage.setResizable(false);
+//        stage.setAlwaysOnTop(true);
+//        stage.setOnCloseRequest(e -> {
+//
+//        });
+//        stage.showAndWait();
+//        return loader.getController();
+//    }
+    public final<T> T openSubStage(ActionEvent event, String sceneFile) throws IOException {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(Context.class.getResource(sceneFile));
-        Stage stage = new Stage();
-        Scene scene = new Scene(loader.load());
-        stage.setScene(scene);
+        Stage subStage = new Stage();
 
-        stage.setTitle("lab8");
+        Stage parentStage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        subStage.initOwner(parentStage);
+        subStage.initModality(Modality.WINDOW_MODAL);
+        Scene scene = new Scene(loader.load());
+        subStage.setScene(scene);
+
+        subStage.setTitle("lab8");
         if (Context.locale != null) {
             Controller controller = loader.getController();
             controller.localize();
         }
-        stage.showAndWait();
+        subStage.setResizable(false);
+        subStage.setAlwaysOnTop(true);
+        subStage.showAndWait();
         return loader.getController();
     }
+
     public final void fadeIn(Node node, Duration duration) {
         FadeTransition transition = new FadeTransition(duration);
         transition.setNode(node);

@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
@@ -17,10 +18,13 @@ import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class TableWindowController extends Controller implements Initializable {
     @FXML
     private Button logoutButton;
+    @FXML
+    private Text buttonError;
     @FXML
     private Button visualizationButton;
     @FXML
@@ -90,9 +94,11 @@ public class TableWindowController extends Controller implements Initializable {
             new Column("creator name", col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCreatorName())))
     };
 
-    private final String[] filterProperties = {"name", "creator name"};
+    private final String[] filterProperties = {"name", "creator name", "id"};
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        buttonError.setText("");
+
         // load cols
         Arrays.stream(columns).forEachOrdered(column -> table.getColumns().add(column.composeColumn()));
         table.getColumns().forEach(col -> col.setPrefWidth(120));
@@ -102,18 +108,17 @@ public class TableWindowController extends Controller implements Initializable {
         table.setItems(FXCollections.observableList(tableItems));
 
         propertyBox.getItems().addAll(filterProperties);
+        propertyBox.setOnAction(e->filterTyped(null));
     }
 
     public void reloadTable(List<Dragon> items) {
-        //TODO test
-        table.getItems().clear();
-        table.getItems().addAll(items);
+        table.setItems(FXCollections.observableList(items));
+        table.refresh();
     }
 
     public void addElement(Dragon dragon) {
-        // FIXME: 22.05.2022 doubles element
-        table.getItems().add(dragon);
         tableItems.add(dragon);
+        reloadTable(tableItems);
     }
 
     private List<Dragon> getData() {
@@ -168,8 +173,7 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void add(ActionEvent event) throws IOException {
-        RequestWindowController controller = openNewWindow("/gui/request.fxml");
-        //switchScene(event, "/gui/request.fxml");
+        RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
         Properties properties = controller.getProperties();
         if(properties == null)
             return;
@@ -177,11 +181,65 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void update(ActionEvent event) throws IOException {
-        switchScene(event, "/gui/request.fxml");
+        Dragon selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            buttonError.setText(Context.locale.getMsg("no_item_selected"));
+            return;
+        }
+        buttonError.setText("");
+        RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
+        Properties properties = controller.getProperties();
+        if (properties == null)
+            return;
+
+        tableItems.forEach(dragon -> {
+            if (dragon.equals(selectedItem)) {
+                dragon.update(properties);
+            }
+        });
+        table.refresh();
+        //reloadTable(tableItems);
     }
 
-    public void remove(ActionEvent event) throws IOException {
-        switchScene(event, "/gui/request.fxml");
+    public void remove(ActionEvent event) {
+        Dragon selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) {
+            buttonError.setText(Context.locale.getMsg("no_item_selected"));
+            return;
+        }
+        buttonError.setText("");
+
+        tableItems.removeIf(d -> d.equals(selectedItem));
+        table.refresh();
+    }
+
+    public void filterTyped(KeyEvent event) {
+        String filter = filterField.getText().trim();
+        if (filter.isEmpty()) {
+            reloadTable(tableItems);
+            return;
+        }
+
+        String filterProperty = propertyBox.getValue();
+        // no property selected
+        if (filterProperty.equals(Context.locale.getMsg("filter")))
+            return;
+
+        List<Dragon> filteredTable = filterByProperty(filterProperty, filter);
+
+        reloadTable(filteredTable);
+    }
+
+    private List<Dragon> filterByProperty(String property, String subSequence) {
+
+        List<Dragon> out = switch (property) {
+            case "name" -> tableItems.stream().filter(d -> d.getName().contains(subSequence)).collect(Collectors.toList());
+            case "creator name" -> tableItems.stream().filter(d -> d.getCreatorName().contains(subSequence)).collect(Collectors.toList());
+            case "id" -> tableItems.stream().filter(d -> d.getId().toString().equals(subSequence)).collect(Collectors.toList());
+            default -> throw new RuntimeException(""); // never happens
+        };
+        System.out.println(out.size());
+        return out;
     }
 
 }

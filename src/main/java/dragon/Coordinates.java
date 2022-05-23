@@ -1,6 +1,8 @@
 package dragon;
 
 
+import java.util.Objects;
+
 /**
  * Класс координат элементов коллекции
  */
@@ -38,5 +40,18 @@ public class Coordinates {
                 "x=" + x +
                 ", y=" + y +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Coordinates that = (Coordinates) o;
+        return x.equals(that.x) && y.equals(that.y);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 }

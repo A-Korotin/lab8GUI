@@ -11,6 +11,7 @@ import json.Json;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 
 /**
@@ -184,6 +185,18 @@ public class Dragon implements Comparable<Dragon>, Describable {
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dragon dragon = (Dragon) o;
+        return name.equals(dragon.name) && coordinates.equals(dragon.coordinates) && creationDate.equals(dragon.creationDate) && age.equals(dragon.age) && color == dragon.color && type == dragon.type && character == dragon.character && cave.equals(dragon.cave) && creator.equals(dragon.creator);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, coordinates, creationDate, age, color, type, character, cave, creator);
+    }
 }
 
 

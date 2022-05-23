@@ -4,6 +4,8 @@ package dragon;
 import collection.DragonDAO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.Objects;
+
 /**
  * Класс пещеры элементов коллекции*/
 public class DragonCave {
@@ -42,5 +44,18 @@ public class DragonCave {
                 "depth=" + depth +
                 ", numberOfTreasures=" + numberOfTreasures +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DragonCave cave = (DragonCave) o;
+        return Double.compare(cave.depth, depth) == 0 && Objects.equals(numberOfTreasures, cave.numberOfTreasures);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(depth, numberOfTreasures);
     }
 }
