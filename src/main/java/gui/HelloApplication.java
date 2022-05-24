@@ -1,5 +1,6 @@
 package gui;
 
+import gui.controller.ErrorWindowController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -20,7 +21,7 @@ public class HelloApplication extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         launch();
     }
 }

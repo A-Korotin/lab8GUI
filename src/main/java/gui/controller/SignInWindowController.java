@@ -2,6 +2,7 @@ package gui.controller;
 
 import commands.Command;
 import commands.auxiliary.Login;
+import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,7 +14,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import locales.Locale;
 import net.Response;
+import net.auth.ServerAuthenticator;
 import net.auth.User;
+import net.codes.EventCode;
+import net.codes.ExitCode;
 
 import java.io.IOException;
 import java.net.URL;
@@ -54,15 +58,22 @@ public class SignInWindowController extends Controller implements Initializable 
     @FXML
     private ImageView duck;
 
+    private static final String HOST = "localhost";
+    private static final int PORT = 4444;
 
     private final String[] languages = {"Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
 
+    private ServerAuthenticator authenticator;
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        try {
+            authenticator = new ServerAuthenticator(HOST, PORT);
+        } catch (IOException ignored) {}
         languageBox.getItems().addAll(languages);
         languageBox.setValue("Language");
         languageBox.setOnAction(this::reloadLocale);
-        if (Context.locale != null)
+        if (!Context.locale.getName().equals("default"))
             languageBox.setValue(Context.locale.getName());
         errorText.setText("");
     }
@@ -84,22 +95,30 @@ public class SignInWindowController extends Controller implements Initializable 
     }
 
     public void signInButtonClicked(ActionEvent event) throws IOException {
-//
-//        String log = loginField.getText().trim();
-//        String pass = passwordField.getText().trim();
-//        if (log.isEmpty() | pass.isEmpty()) {
-//            if (Context.locale != null)
-//                errorText.setText(Context.locale.getMsg("empty_login_or_password"));
-//            else
-//                errorText.setText("Empty login or password");
-//            return;
-//        }
-//        Command login = new Login();
-//        login.user = new User(log, pass);
-//        Response response = Context.client.sendCommand(login, 10);
-//        System.out.println(response.toString());
+        String log = loginField.getText().trim();
+        String pass = passwordField.getText().trim();
+        if (log.isEmpty() || pass.isEmpty()) {
+            errorText.setText(Context.locale.getMsg("empty_login_or_password"));
+            return;
+        }
 
-        switchScene(event, "/gui/table.fxml");
+        User user = new User(log, pass);
+        boolean validUser;
+        try {
+            validUser = authenticator.isValidUser(user);
+        } catch (ServerUnreachableException e) {
+            ErrorWindowController controller =
+                    openSubStage(event, "/gui/errorWindow.fxml",c -> c.displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE));
+            handleErrorWindow(controller.getButtonPressed(), rootPane);
+            return;
+        }
+
+        if (!validUser)
+            errorText.setText(Context.locale.getMsg("invalid_login_or_password"));
+        else {
+            Context.user = user;
+            switchScene(event, "/gui/table.fxml");
+        }
     }
 
     public void reloadLocale(ActionEvent event) {

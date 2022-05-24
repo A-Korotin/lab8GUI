@@ -14,7 +14,10 @@ import java.util.stream.Collectors;
 public final class Response {
     private List<EventCode> eventCodes = new ArrayList<>();
     private ExitCode exitCode = ExitCode.OK;
+    // Additional info if any
     private String info = "";
+    // Return elements if any
+    private List<Dragon> elements = new ArrayList<>();
 
     public Response event(EventCode... code) {
         // log event if not NONE
@@ -30,6 +33,7 @@ public final class Response {
     public Response logResult(Result result) {
         this.exitCode = result.exitCode;
         this.eventCodes.addAll(result.eventCodes);
+        this.info = result.info;
         return this;
     }
 
@@ -47,6 +51,16 @@ public final class Response {
         try {
             this.info += dragon.description();
         } catch (JsonProcessingException ignored) {}
+        return this;
+    }
+
+    public Response elements(List<Dragon> dragons) {
+        this.elements.addAll(dragons);
+        return this;
+    }
+
+    public Response elements(Dragon... dragons) {
+        this.elements.addAll(List.of(dragons));
         return this;
     }
 
@@ -82,5 +96,13 @@ public final class Response {
 
     public void setInfo(String info) {
         this.info = info;
+    }
+
+    public List<Dragon> getElements() {
+        return elements;
+    }
+
+    public void setElements(List<Dragon> elements) {
+        this.elements = elements;
     }
 }

@@ -1,6 +1,10 @@
 package gui.controller;
 
+import collection.DAO;
+import collection.ServerDAO;
 import dragon.*;
+import exceptions.NonOKExitException;
+import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import io.Properties;
 import javafx.beans.property.SimpleStringProperty;
@@ -12,6 +16,8 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
+import net.codes.ExitCode;
+import net.codes.Result;
 
 import java.io.IOException;
 import java.net.URL;
@@ -44,6 +50,11 @@ public class TableWindowController extends Controller implements Initializable {
 
     private List<Dragon> tableItems;
 
+    private DAO serverDao;
+
+    private static final String HOST = "localhost";
+    private static final int PORT = 4444;
+
     @Override
     protected void localize() {
         logoutButton.setText(Context.locale.getMsg("logout"));
@@ -73,20 +84,20 @@ public class TableWindowController extends Controller implements Initializable {
             new Column("age", null),
             new Column("color", col -> col.setCellValueFactory(callback ->
                     new SimpleStringProperty(callback.getValue().getColor() == null ?
-                            "null":
+                            "null" :
                             callback.getValue().getColor().getDescription()))),
 
             new Column("type", col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getType().getDescription()))),
             new Column("character",
                     col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCharacter() == null ?
-                            "null":
+                            "null" :
                             callback.getValue().getCharacter().getDescription()))),
 
             new Column("cave", col -> {
                 Column depth = new Column("depth", c -> c.setCellValueFactory(callback -> new SimpleStringProperty(String.valueOf(callback.getValue().getCave().getDepth()))));
                 Column nTreasures = new Column("number of treasures", c -> c.setCellValueFactory(callback ->
                         new SimpleStringProperty(callback.getValue().getCave().getNumberOfTreasures() == null ?
-                                "null":
+                                "null" :
                                 callback.getValue().getCave().getNumberOfTreasures().toString())));
 
                 col.getColumns().addAll(depth.composeColumn(), nTreasures.composeColumn());
@@ -95,8 +106,13 @@ public class TableWindowController extends Controller implements Initializable {
     };
 
     private final String[] filterProperties = {"name", "creator name", "id"};
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        try {
+            serverDao = new ServerDAO(HOST, PORT);
+        } catch (IOException ignored) {}
+
         buttonError.setText("");
 
         // load cols
@@ -108,7 +124,7 @@ public class TableWindowController extends Controller implements Initializable {
         table.setItems(FXCollections.observableList(tableItems));
 
         propertyBox.getItems().addAll(filterProperties);
-        propertyBox.setOnAction(e->filterTyped(null));
+        propertyBox.setOnAction(e -> filterTyped(null));
     }
 
     public void reloadTable(List<Dragon> items) {
@@ -122,26 +138,7 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     private List<Dragon> getData() {
-        List<Dragon> out = new ArrayList<>();
-        Dragon dragon = new Dragon(1, "hello", new Coordinates(1F, 1), LocalDate.now(),
-                12L, Color.BLACK, DragonType.FIRE, DragonCharacter.GOOD, new DragonCave(1, 214));
-        dragon.setCreatorName("qwerty");
-        Dragon dragon1 = new Dragon(2, "hello world", new Coordinates(2F, 10), LocalDate.now(),
-                1L, Color.BLACK, DragonType.FIRE, DragonCharacter.CHAOTIC_EVIL, new DragonCave(10000, 1));
-        dragon1.setCreatorName("admin");
-
-        Dragon dragon2 = new Dragon(3, "John", new Coordinates(14214F, -21414), LocalDate.now(),
-                4214124L, Color.BLUE, DragonType.AIR, DragonCharacter.GOOD, new DragonCave(4214, null));
-        dragon2.setCreatorName("qwerty");
-        Dragon dragon3 = new Dragon(4, "Henry", new Coordinates(-123F, 444444444), LocalDate.now(),
-                4214124421L, Color.WHITE, DragonType.UNDERGROUND, DragonCharacter.FICKLE, new DragonCave(-41, 4214124));
-        dragon3.setCreatorName("qwerty");
-        out.add(dragon);
-        out.add(dragon1);
-        out.add(dragon2);
-        out.add(dragon3);
-        return out;
-        // FIXME: 18.05.2022 database loading
+        return serverDao.getAll();
     }
 
     private static class Column {
@@ -155,7 +152,7 @@ public class TableWindowController extends Controller implements Initializable {
 
         public TableColumn<Dragon, String> composeColumn() {
             TableColumn<Dragon, String> out = new TableColumn<>(label);
-            if(additionalCode != null)
+            if (additionalCode != null)
                 additionalCode.accept(out);
             else
                 out.setCellValueFactory(new PropertyValueFactory<>(label));
@@ -169,15 +166,38 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void visualization(ActionEvent event) throws IOException {
-        switchScene(event, "/gui/visualizationWindow.fxml");
+        Dragon selected = table.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            buttonError.setText(Context.locale.getMsg("no_item_selected"));
+            return;
+        }
+        VisualizationWindowController controller =
+                openSubStage(event,"/gui/visualizationWindow.fxml", c ->  {
+                    c.setElement(selected);
+                    c.paint();
+                });
     }
 
     public void add(ActionEvent event) throws IOException {
         RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
         Properties properties = controller.getProperties();
-        if(properties == null)
+        if (properties == null)
             return;
-        addElement(new Dragon(-1, properties));
+
+        Result result;
+        try {
+            result = serverDao.create(properties);
+        } catch (ServerUnreachableException e) {
+            ErrorWindowController errorController = openSubStage(event, "/gui/errorWindow.fxml");
+            handleErrorWindow(errorController.getButtonPressed(), table);
+            return;
+        }
+        if (result.exitCode != ExitCode.OK) {
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg(result.exitCode), Context.locale.getMsg(result.eventCodes.get(0))));
+            return;
+        }
+        int id = Integer.parseInt(result.info);
+        addElement(new Dragon(id, properties));
     }
 
     public void update(ActionEvent event) throws IOException {
@@ -186,11 +206,31 @@ public class TableWindowController extends Controller implements Initializable {
             buttonError.setText(Context.locale.getMsg("no_item_selected"));
             return;
         }
+        if (!selectedItem.getCreatorName().equals(Context.user.login)) {
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg("INVALID_INPUT"), Context.locale.getMsg("NO_RIGHTS_TO_MODIFY")));
+            return;
+        }
         buttonError.setText("");
         RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
         Properties properties = controller.getProperties();
         if (properties == null)
             return;
+
+        int idToUpdate = selectedItem.getId();
+
+        Result result;
+        try {
+            result = serverDao.update(idToUpdate, properties);
+        } catch (ServerUnreachableException e) {
+            ErrorWindowController errorController = openSubStage(event, "/gui/errorWindow.fxml");
+            handleErrorWindow(errorController.getButtonPressed(), table);
+            return;
+        }
+
+        if (result.exitCode != ExitCode.OK) {
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg(result.exitCode), Context.locale.getMsg(result.eventCodes.get(0))));
+            return;
+        }
 
         tableItems.forEach(dragon -> {
             if (dragon.equals(selectedItem)) {
@@ -198,17 +238,34 @@ public class TableWindowController extends Controller implements Initializable {
             }
         });
         table.refresh();
-        //reloadTable(tableItems);
     }
 
-    public void remove(ActionEvent event) {
+    public void remove(ActionEvent event) throws IOException {
         Dragon selectedItem = table.getSelectionModel().getSelectedItem();
         if (selectedItem == null) {
             buttonError.setText(Context.locale.getMsg("no_item_selected"));
             return;
         }
+        if (!selectedItem.getCreatorName().equals(Context.user.login)) {
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg("INVALID_INPUT"), Context.locale.getMsg("NO_RIGHTS_TO_MODIFY")));
+            return;
+        }
         buttonError.setText("");
+        int idToDelete = selectedItem.getId();
 
+        Result result;
+        try {
+            result = serverDao.delete(idToDelete);
+        } catch (ServerUnreachableException e) {
+            ErrorWindowController errorController = openSubStage(event, "/gui/errorWindow.fxml");
+            handleErrorWindow(errorController.getButtonPressed(), table);
+            return;
+        }
+
+        if (result.exitCode != ExitCode.OK) {
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg(result.exitCode), Context.locale.getMsg(result.eventCodes.get(0))));
+            return;
+        }
         tableItems.removeIf(d -> d.equals(selectedItem));
         table.refresh();
     }
@@ -221,6 +278,7 @@ public class TableWindowController extends Controller implements Initializable {
         }
 
         String filterProperty = propertyBox.getValue();
+
         // no property selected
         if (filterProperty.equals(Context.locale.getMsg("filter")))
             return;
@@ -232,14 +290,12 @@ public class TableWindowController extends Controller implements Initializable {
 
     private List<Dragon> filterByProperty(String property, String subSequence) {
 
-        List<Dragon> out = switch (property) {
-            case "name" -> tableItems.stream().filter(d -> d.getName().contains(subSequence)).collect(Collectors.toList());
-            case "creator name" -> tableItems.stream().filter(d -> d.getCreatorName().contains(subSequence)).collect(Collectors.toList());
+        return switch (property) {
+            case "name" -> tableItems.stream().filter(d -> d.getName().toLowerCase().contains(subSequence.toLowerCase())).collect(Collectors.toList());
+            case "creator name" -> tableItems.stream().filter(d -> d.getCreatorName().toLowerCase().contains(subSequence.toLowerCase())).collect(Collectors.toList());
             case "id" -> tableItems.stream().filter(d -> d.getId().toString().equals(subSequence)).collect(Collectors.toList());
             default -> throw new RuntimeException(""); // never happens
         };
-        System.out.println(out.size());
-        return out;
     }
 
 }

@@ -46,12 +46,17 @@ public class Coordinates {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Coordinates that = (Coordinates) o;
-        return x.equals(that.x) && y.equals(that.y);
+
+        if (!x.equals(that.x)) return false;
+        return y.equals(that.y);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y);
+        int result = x.hashCode();
+        result = 31 * result + y.hashCode();
+        return result;
     }
 }

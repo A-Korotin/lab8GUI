@@ -25,5 +25,6 @@ module com.example.jfxtest {
     exports locales;
     exports commands;
     exports json;
+    exports exceptions;
     opens gui.controller to javafx.fxml;
 }

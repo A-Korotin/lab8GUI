@@ -16,15 +16,15 @@
                   <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="50.0">
                      <children>
                         <Button fx:id="backButton" mnemonicParsing="false" onAction="#back" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Back" />
-                        <Button fx:id="flyButton" mnemonicParsing="false" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Fly" />
-                        <Button fx:id="walkButton" mnemonicParsing="false" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Walk" />
-                        <Button fx:id="standButton" mnemonicParsing="false" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Stand" />
-                        <Button fx:id="swimButton" mnemonicParsing="false" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Swim" />
+                        <Button fx:id="flyButton" mnemonicParsing="false" onAction="#flyClicked" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Fly" />
+                        <Button fx:id="walkButton" mnemonicParsing="false" onAction="#walkClicked" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Walk" />
+                        <Button fx:id="standButton" mnemonicParsing="false" onAction="#standClicked" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Stand" />
+                        <Button fx:id="swimButton" mnemonicParsing="false" onAction="#swimClicked" styleClass="button-sign-in" stylesheets="@../styles/buttons.css" text="Swim" />
                      </children>
                   </HBox>
                   <HBox alignment="CENTER">
                      <children>
-                        <ImageView fitHeight="233.0" fitWidth="296.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fx:id="imageView" fitHeight="233.0" fitWidth="296.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@../sprites/dragon/idle/idle1.png" />
                            </image>

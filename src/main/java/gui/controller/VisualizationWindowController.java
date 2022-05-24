@@ -1,13 +1,22 @@
 package gui.controller;
 
+import dragon.Dragon;
+import gui.animation.Sprite;
 import gui.controller.context.Context;
+import javafx.animation.AnimationTimer;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class VisualizationWindowController extends Controller implements Initializable {
@@ -21,6 +30,24 @@ public class VisualizationWindowController extends Controller implements Initial
     private Button standButton;
     @FXML
     private Button swimButton;
+    @FXML
+    private ImageView imageView;
+
+    private AnimationTimer animationTimer = null;
+
+    private Dragon element;
+    private int elementHash;
+
+    private List<Image> flySprite;
+    private List<Image> walkSprite;
+    private List<Image> standSprite;
+    private List<Image> swimSprite;
+
+
+    public void setElement(Dragon dragon) {
+        elementHash = dragon.hashCode();
+        this.element = dragon;
+    }
 
     @Override
     protected void localize() {
@@ -33,10 +60,55 @@ public class VisualizationWindowController extends Controller implements Initial
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        try {
+            flySprite = loadSprite("src/main/resources/sprites/dragon/fly");
+            standSprite = loadSprite("src/main/resources/sprites/dragon/idle");
+            walkSprite = loadSprite("src/main/resources/sprites/dragon/walk");
+            swimSprite = loadSprite("src/main/resources/sprites/dragon/swim");
+        }
+        catch (IOException ignored) {}
+    }
 
+    public void paint() {
+        standClicked(null);
     }
 
     public void back(ActionEvent event) throws IOException {
-        switchScene(event, "/gui/table.fxml");
+        imageView.getScene().getWindow().hide();
     }
+
+    private void runAnimation(List<Image> sprite) {
+        if (animationTimer != null)
+            animationTimer.stop();
+        animationTimer = new Sprite(sprite, imageView, elementHash);
+        animationTimer.start();
+    }
+
+    public void flyClicked(ActionEvent event) {
+        runAnimation(flySprite);
+    }
+    public void standClicked(ActionEvent event){
+        runAnimation(standSprite);
+    }
+    public void walkClicked(ActionEvent event) {
+        runAnimation(walkSprite);
+    }
+    public void swimClicked(ActionEvent event) {
+        runAnimation(swimSprite);
+    }
+
+    private List<Image> loadSprite(String folderPath) throws IOException{
+
+        List<Image> out = new ArrayList<>();
+        File folder = new File(folderPath);
+
+        for (File file: folder.listFiles()) {
+            try(FileInputStream fileInputStream = new FileInputStream(file)) {
+                out.add(new Image(fileInputStream));
+            }
+        }
+
+        return out;
+    }
+
 }

@@ -1,5 +1,6 @@
 package gui.controller;
 
+import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -11,6 +12,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 import locales.Locale;
+import net.auth.ServerAuthenticator;
+import net.auth.User;
+import net.codes.EventCode;
+import net.codes.ExitCode;
 
 import java.io.IOException;
 import java.net.URL;
@@ -31,10 +36,19 @@ public class SignUpWindowController extends Controller implements Initializable 
     private Button signUpButton;
     @FXML
     private Button backButton;
+    @FXML
+    private Text errorText;
 
+    private static final String HOST = "localhost";
+    private static final int PORT = 4444;
 
+    private ServerAuthenticator authenticator;
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        try {
+            authenticator = new ServerAuthenticator(HOST, PORT);
+        } catch (IOException ignored) {}
+        errorText.setText("");
     }
 
     public void backButtonClicked(ActionEvent event) throws IOException {
@@ -42,7 +56,38 @@ public class SignUpWindowController extends Controller implements Initializable 
     }
 
     public void signUpButtonClicked(ActionEvent event) throws IOException {
+        String login = loginField.getText().trim();
+        String password = passwordField.getText().trim();
+        String repeatPassword = repeatPasswordField.getText().trim();
 
+        if (login.isEmpty() || password.isEmpty()) {
+            errorText.setText(Context.locale.getMsg("empty_login_or_password"));
+            return;
+        }
+
+        if (!password.equals(repeatPassword)) {
+            errorText.setText(Context.locale.getMsg("passwords_dont_match"));
+            return;
+        }
+
+        User user = new User(login, password);
+        boolean registered;
+        try {
+            registered = authenticator.registerUser(user);
+        }catch (ServerUnreachableException e) {
+            ErrorWindowController controller =
+                    openSubStage(event, "/gui/errorWindow.fxml",c -> c.displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE));
+            handleErrorWindow(controller.getButtonPressed(), welcomeText);
+            return;
+        }
+
+        if (!registered) {
+            errorText.setText(Context.locale.getMsg("login_already_exists"));
+            return;
+        }
+
+        Context.user = user;
+        switchScene(event, "/gui/table.fxml");
     }
 
     @Override

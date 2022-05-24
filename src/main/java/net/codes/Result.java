@@ -9,6 +9,8 @@ public final class Result {
 
     public final List<EventCode> eventCodes = new ArrayList<>();
 
+    public String info;
+
     public Result exitCode(ExitCode exitCode) {
         this.exitCode = exitCode;
         return this;
@@ -16,6 +18,10 @@ public final class Result {
 
     public Result eventCode(EventCode code) {
         this.eventCodes.add(code);
+        return this;
+    }
+    public Result info(String info) {
+        this.info = info;
         return this;
     }
 

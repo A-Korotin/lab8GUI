@@ -5,6 +5,7 @@ import commands.Command;
 import commands.dependencies.CommandProperties;
 import exceptions.InvalidValueException;
 import exceptions.ResponseTimeoutException;
+import exceptions.ServerUnreachableException;
 import json.Json;
 
 import java.io.IOException;
@@ -72,7 +73,7 @@ public final class Client {
         throw new ResponseTimeoutException();
     }
 
-    public Response sendCommand(Command command, long timeout) {
+    public Response sendCommand(Command command, long timeout) throws ServerUnreachableException {
         try {
             CommandProperties properties = command.getProperties(null);
             Request request = new Request();
@@ -80,11 +81,11 @@ public final class Client {
             request.user = command.user;
             String requestJson = Json.stringRepresentation(Json.toJson(request), true);
             return sendAndReceiveResponse(requestJson, timeout);
-        } catch (InvalidValueException | IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("ERROR!");
         }
-
+        catch (InvalidValueException | JsonProcessingException ignored) {return null;}
+        catch (IOException e) {
+            throw new ServerUnreachableException();
+        }
     }
 
     private String attachInput(List<String> input) {

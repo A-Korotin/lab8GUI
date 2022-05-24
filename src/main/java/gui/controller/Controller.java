@@ -3,16 +3,12 @@ package gui.controller;
 import gui.controller.context.Context;
 import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import locales.Locale;
 
 import java.io.IOException;
 import java.net.URL;
@@ -41,46 +37,52 @@ public abstract class Controller {
         fadeIn(mainAnchorRoot, Duration.millis(700));
     }
 
-//    public final<T> T openNewWindow(String sceneFile) throws IOException {
-//        FXMLLoader loader = new FXMLLoader();
-//        loader.setLocation(Context.class.getResource(sceneFile));
-//        Stage stage = new Stage();
-//        Scene scene = new Scene(loader.load());
-//        stage.setScene(scene);
-//
-//        stage.setTitle("lab8");
-//        if (Context.locale != null) {
-//            Controller controller = loader.getController();
-//            controller.localize();
-//        }
-//        stage.setResizable(false);
-//        stage.setAlwaysOnTop(true);
-//        stage.setOnCloseRequest(e -> {
-//
-//        });
-//        stage.showAndWait();
-//        return loader.getController();
-//    }
-    public final<T> T openSubStage(ActionEvent event, String sceneFile) throws IOException {
+    private<T> StageAndController<T> loadSubStage(ActionEvent event, String sceneFile) throws IOException {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(Context.class.getResource(sceneFile));
         Stage subStage = new Stage();
-
         Stage parentStage = (Stage)((Node)event.getSource()).getScene().getWindow();
         subStage.initOwner(parentStage);
         subStage.initModality(Modality.WINDOW_MODAL);
         Scene scene = new Scene(loader.load());
         subStage.setScene(scene);
-
+        subStage.setResizable(false);
+        subStage.setAlwaysOnTop(true);
         subStage.setTitle("lab8");
         if (Context.locale != null) {
             Controller controller = loader.getController();
             controller.localize();
         }
-        subStage.setResizable(false);
-        subStage.setAlwaysOnTop(true);
+        StageAndController<T> stageAndController = new StageAndController<>();
+        stageAndController.stage = subStage;
+        stageAndController.controller = loader.getController();
+
+        return stageAndController;
+    }
+
+    public final<T> T openSubStage(ActionEvent event, String sceneFile) throws IOException {
+        StageAndController<T> stageAndController = loadSubStage(event, sceneFile);
+        Stage subStage = stageAndController.stage;
+        T controller = stageAndController.controller;
         subStage.showAndWait();
-        return loader.getController();
+        return controller;
+    }
+
+    public final<T> T openSubStage(ActionEvent event, String sceneFile, Consumer<T> additional)  throws IOException{
+        StageAndController<T> stageAndController = loadSubStage(event, sceneFile);
+        Stage subStage = stageAndController.stage;
+        T controller = stageAndController.controller;
+        additional.accept(controller);
+        subStage.showAndWait();
+        return controller;
+    }
+
+    public void handleErrorWindow(String button, Node node) {
+        switch (button) {
+            case "exit", "close" -> node.getScene().getWindow().hide();
+            case "wait" -> {
+            }
+        }
     }
 
     public final void fadeIn(Node node, Duration duration) {
@@ -91,4 +93,10 @@ public abstract class Controller {
         transition.play();
     }
 
+
+
+    private static class StageAndController<T> {
+        public Stage stage;
+        public T controller;
+    }
 }

@@ -189,13 +189,34 @@ public class Dragon implements Comparable<Dragon>, Describable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         Dragon dragon = (Dragon) o;
-        return name.equals(dragon.name) && coordinates.equals(dragon.coordinates) && creationDate.equals(dragon.creationDate) && age.equals(dragon.age) && color == dragon.color && type == dragon.type && character == dragon.character && cave.equals(dragon.cave) && creator.equals(dragon.creator);
+
+        if (!id.equals(dragon.id)) return false;
+        if (!name.equals(dragon.name)) return false;
+        if (!coordinates.equals(dragon.coordinates)) return false;
+        if (!creationDate.equals(dragon.creationDate)) return false;
+        if (!age.equals(dragon.age)) return false;
+        if (color != dragon.color) return false;
+        if (type != dragon.type) return false;
+        if (character != dragon.character) return false;
+        if (!cave.equals(dragon.cave)) return false;
+        return creator.equals(dragon.creator);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, coordinates, creationDate, age, color, type, character, cave, creator);
+        int result = id.hashCode();
+        result = 31 * result + name.hashCode();
+        result = 31 * result + coordinates.hashCode();
+        result = 31 * result + creationDate.hashCode();
+        result = 31 * result + age.hashCode();
+        result = 31 * result + (color != null ? color.hashCode() : 0);
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (character != null ? character.hashCode() : 0);
+        result = 31 * result + cave.hashCode();
+        result = 31 * result + creator.hashCode();
+        return result;
     }
 }
 

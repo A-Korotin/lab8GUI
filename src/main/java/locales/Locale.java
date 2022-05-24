@@ -6,9 +6,8 @@ import net.codes.ExitCode;
 import java.util.NoSuchElementException;
 import java.util.ResourceBundle;
 
-// FIXME: 20.05.2022
 public class Locale {
-    private String name;
+    private final String name;
     private final ResourceBundle bundle;
 
     public Locale(String name) throws NoSuchElementException {

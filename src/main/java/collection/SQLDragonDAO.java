@@ -44,7 +44,7 @@ public final class SQLDragonDAO implements DAO, Describable, Orderable {
         }
         collection.add(dragon);
 
-        return new Result().exitCode(ExitCode.OK);
+        return new Result().exitCode(ExitCode.OK).info(String.valueOf(databaseId));
     }
 
     @Override

@@ -14,7 +14,7 @@ public class Context {
             e.printStackTrace();
         }
     }
-    public static Locale locale = null;
+    public static Locale locale = new Locale("default");
     public static Client client;
     public static User user = new User("admin", "");
 }

@@ -18,10 +18,18 @@ public final class AuxiliaryCommandCreator {
     static {
         availableCommands.put("login", Login::new);
         availableCommands.put("register", Register::new);
+        availableCommands.put("get_all", GetAll::new);
+        availableCommands.put("insert", Insert::new);
+        availableCommands.put("delete", Delete::new);
+        availableCommands.put("update", Update::new);
     }
 
     public static Command getCommand(List<String> args) {
         String name = args.get(0);
-        return availableCommands.get(name).construct();
+        args.remove(0);
+        Command command = availableCommands.get(name).construct();
+        command.setArgs(args);
+
+        return command;
     }
 }

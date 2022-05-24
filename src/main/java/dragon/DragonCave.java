@@ -50,12 +50,20 @@ public class DragonCave {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         DragonCave cave = (DragonCave) o;
-        return Double.compare(cave.depth, depth) == 0 && Objects.equals(numberOfTreasures, cave.numberOfTreasures);
+
+        if (Double.compare(cave.depth, depth) != 0) return false;
+        return numberOfTreasures != null ? numberOfTreasures.equals(cave.numberOfTreasures) : cave.numberOfTreasures == null;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(depth, numberOfTreasures);
+        int result;
+        long temp;
+        temp = Double.doubleToLongBits(depth);
+        result = (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (numberOfTreasures != null ? numberOfTreasures.hashCode() : 0);
+        return result;
     }
 }

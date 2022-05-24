@@ -116,7 +116,6 @@ public final class ClientLayer {
 
             Response response = client.sendAndReceiveResponse(request, 20);
 
-            // FIXME: 08.05.2022 Locale representation
             outPutter.output(Json.stringRepresentation(Json.toJson(response), true));
             if (!response.getInfo().isEmpty())
                 outPutter.output(response.getInfo());

@@ -1,6 +1,7 @@
 package commands;
 
 
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import commands.auxiliary.AuxiliaryCommandCreator;
 import commands.dependencies.*;
 import exceptions.InvalidArgsSizeException;
@@ -37,6 +38,7 @@ public abstract class Command {
         CommandProperties p = new CommandProperties();
         p.args = args;
         p.args.add(0, name);
+        p.properties = properties;
         if (this instanceof PropertiesDependant)
             p.properties = GetProperties.getProperties(askForInput, args, instances, indexShift+1);
         return p;
@@ -81,4 +83,16 @@ public abstract class Command {
      *
      */
     public abstract Response execute(Instances instances);
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
+    public List<String> getArgs() {
+        return args;
+    }
+
+    public void setArgs(List<String> args) {
+        this.args = args;
+    }
 }

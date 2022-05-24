@@ -11,6 +11,7 @@ public class Main {
         System.out.println("HELLO!");
         try {
             Class.forName("net.Request").getClassLoader().loadClass("net.Request");
+            Class.forName("jdbc.UserManager").getClassLoader().loadClass("jdbc.UserManager");
             Server server = new Server("localhost", 4444);
             server.run();
         } catch (BindException e) {

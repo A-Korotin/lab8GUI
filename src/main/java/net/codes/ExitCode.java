@@ -7,5 +7,6 @@ public enum ExitCode {
 
     //authentication
     VALID,
-    INVALID;
+    INVALID,
+
 }
