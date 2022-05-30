@@ -45,7 +45,7 @@ public class VisualizationWindowController extends Controller implements Initial
 
 
     public void setElement(Dragon dragon) {
-        elementHash = dragon.hashCode();
+        elementHash = dragon.getCreatorName().hashCode();
         this.element = dragon;
     }
 

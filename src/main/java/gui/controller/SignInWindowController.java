@@ -1,7 +1,5 @@
 package gui.controller;
 
-import commands.Command;
-import commands.auxiliary.Login;
 import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import javafx.event.ActionEvent;
@@ -9,19 +7,21 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import locales.Locale;
-import net.Response;
+import locale.Locale;
 import net.auth.ServerAuthenticator;
 import net.auth.User;
 import net.codes.EventCode;
 import net.codes.ExitCode;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 public class SignInWindowController extends Controller implements Initializable {
@@ -65,11 +65,13 @@ public class SignInWindowController extends Controller implements Initializable 
 
     private ServerAuthenticator authenticator;
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
             authenticator = new ServerAuthenticator(HOST, PORT);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
         languageBox.getItems().addAll(languages);
         languageBox.setValue("Language");
         languageBox.setOnAction(this::reloadLocale);
@@ -101,14 +103,13 @@ public class SignInWindowController extends Controller implements Initializable 
             errorText.setText(Context.locale.getMsg("empty_login_or_password"));
             return;
         }
-
         User user = new User(log, pass);
         boolean validUser;
         try {
             validUser = authenticator.isValidUser(user);
         } catch (ServerUnreachableException e) {
             ErrorWindowController controller =
-                    openSubStage(event, "/gui/errorWindow.fxml",c -> c.displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE));
+                    openSubStage(event, "/gui/errorWindow.fxml", c -> c.displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE));
             handleErrorWindow(controller.getButtonPressed(), rootPane);
             return;
         }
@@ -130,7 +131,6 @@ public class SignInWindowController extends Controller implements Initializable 
 
     public void duckClicked() {
         System.out.println("duck");
-
     }
 
     public void duckEntered() {

@@ -19,41 +19,15 @@ import net.codes.Result;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class ServerDAO implements DAO {
     private final Client client;
 
-    private static final int TIMEOUT = 10; //sec
+    private static final long TIMEOUT = 10L; //sec
 
     public ServerDAO(String host, int port) throws IOException {
         client = new Client(host, port);
-    }
-
-    private void setEssentials(final Command command, final Properties properties) {
-        command.user = Context.user;
-        command.setProperties(properties);
-    }
-
-    private void setEssentials(final Command command, final Properties properties, final String... args) {
-        setEssentials(command, properties);
-        if(args.length != 0)
-            command.setArgs(new ArrayList<>(List.of(args)));
-    }
-
-    private void setEssentials(final Command command, final String... args) {
-        command.user = Context.user;
-        if (args.length != 0)
-            command.setArgs(new ArrayList<>(List.of(args)));
-    }
-
-    private Result sendCommand(Command command) {
-        Response response = client.sendCommand(command, TIMEOUT);
-        ExitCode exitCode = response.getExitCode();
-        EventCode eventCode = response.getEventCodes().size() == 0 ? null: response.getEventCodes().get(0); // FIXME: 24.05.2022 only first event code is considered
-        String info = response.getInfo();
-        return new Result().exitCode(exitCode).eventCode(eventCode).info(info);
     }
 
     @Override
@@ -97,5 +71,30 @@ public class ServerDAO implements DAO {
     @Override
     public Result clear() {
         throw new NotImplementedException("No clear allowed");
+    }
+
+    private void setEssentials(final Command command, final Properties properties) {
+        command.user = Context.user;
+        command.setProperties(properties);
+    }
+
+    private void setEssentials(final Command command, final Properties properties, final String... args) {
+        setEssentials(command, properties);
+        if(args.length != 0)
+            command.setArgs(new ArrayList<>(List.of(args)));
+    }
+
+    private void setEssentials(final Command command, final String... args) {
+        command.user = Context.user;
+        if (args.length != 0)
+            command.setArgs(new ArrayList<>(List.of(args)));
+    }
+
+    private Result sendCommand(Command command) {
+        Response response = client.sendCommand(command, TIMEOUT);
+        ExitCode exitCode = response.getExitCode();
+        EventCode eventCode = response.getEventCodes().size() == 0 ? null: response.getEventCodes().get(0); // FIXME: 24.05.2022 only first event code is considered
+        String info = response.getInfo();
+        return new Result().exitCode(exitCode).eventCode(eventCode).info(info);
     }
 }

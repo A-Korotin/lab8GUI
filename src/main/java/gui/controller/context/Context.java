@@ -1,10 +1,12 @@
 package gui.controller.context;
 
-import locales.Locale;
+import locale.Locale;
 import net.Client;
 import net.auth.User;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Context {
     static {
@@ -17,4 +19,5 @@ public class Context {
     public static Locale locale = new Locale("default");
     public static Client client;
     public static User user = new User("admin", "");
+    public static ExecutorService pool = Executors.newFixedThreadPool(1);
 }

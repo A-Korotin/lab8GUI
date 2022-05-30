@@ -22,7 +22,7 @@ module com.example.jfxtest {
     exports io;
     exports dragon;
     exports gui.controller;
-    exports locales;
+    exports locale;
     exports commands;
     exports json;
     exports exceptions;

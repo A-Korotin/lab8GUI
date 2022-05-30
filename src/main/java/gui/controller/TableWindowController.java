@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,9 @@ public class TableWindowController extends Controller implements Initializable {
                 col.getColumns().addAll(x.composeColumn(), y.composeColumn());
 
             }),
-            new Column("creationDate", null),
+            new Column("creationDate", col ->
+                col.setCellValueFactory(callback -> new SimpleStringProperty(Context.locale.formatDate(callback.getValue().getCreationDate())))
+            ),
             new Column("age", null),
             new Column("color", col -> col.setCellValueFactory(callback ->
                     new SimpleStringProperty(callback.getValue().getColor() == null ?
@@ -119,12 +122,14 @@ public class TableWindowController extends Controller implements Initializable {
         Arrays.stream(columns).forEachOrdered(column -> table.getColumns().add(column.composeColumn()));
         table.getColumns().forEach(col -> col.setPrefWidth(120));
 
-        // fill table
-        tableItems = getData();
-        table.setItems(FXCollections.observableList(tableItems));
-
         propertyBox.getItems().addAll(filterProperties);
-        propertyBox.setOnAction(e -> filterTyped(null));
+        //propertyBox.setOnAction(e -> filterTyped(null));
+
+        new Thread(() -> {
+            // fill table
+            tableItems = serverDao.getAll();
+            table.setItems(FXCollections.observableList(tableItems));
+        }).start();
     }
 
     public void reloadTable(List<Dragon> items) {

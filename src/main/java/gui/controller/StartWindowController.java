@@ -4,7 +4,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.text.Text;
-import locales.Locale;
 
 import java.net.URL;
 import java.util.ResourceBundle;
