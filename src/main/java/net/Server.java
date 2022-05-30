@@ -113,11 +113,12 @@ public class Server {
 
     private void writeLayer(SelectionKey k, SocketAddress address, Response response){
         try{
-            String responseJson = Json.stringRepresentation(Json.toJson(response), true);
+            String responseJson = Json.stringRepresentation(Json.toJson(response), false);
             List<String> responseSplit = Splitter.splitToChunks(responseJson, 10_000);
-
+            System.out.println("response split size:" + responseSplit.size());
             for (String msg : responseSplit) {
                 write(k, msg, address);
+                System.out.println(msg.length());
 
                 TimeUnit.MILLISECONDS.sleep(10);
             }

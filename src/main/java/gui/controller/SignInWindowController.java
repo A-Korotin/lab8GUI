@@ -61,7 +61,7 @@ public class SignInWindowController extends Controller implements Initializable 
     private static final String HOST = "localhost";
     private static final int PORT = 4444;
 
-    private final String[] languages = {"Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
+    private final String[] languages = {"default", "Русский", "Slovenščina", "Svenska", "Español (Ecuador)"};
 
     private ServerAuthenticator authenticator;
 
@@ -109,7 +109,7 @@ public class SignInWindowController extends Controller implements Initializable 
             validUser = authenticator.isValidUser(user);
         } catch (ServerUnreachableException e) {
             ErrorWindowController controller =
-                    openSubStage(event, "/gui/errorWindow.fxml", c -> c.displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE));
+                    openSubStage(event, "/gui/errorWindow.fxml");
             handleErrorWindow(controller.getButtonPressed(), rootPane);
             return;
         }

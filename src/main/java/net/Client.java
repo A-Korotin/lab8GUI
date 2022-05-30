@@ -37,6 +37,7 @@ public final class Client {
             if(key.isWritable()) {
                 write(key, message);
                 String response = read(key, timeout);
+                System.out.println(response.length());
                 return Json.fromJson(Json.parse(response), Response.class);
             }
         }
@@ -82,7 +83,7 @@ public final class Client {
             String requestJson = Json.stringRepresentation(Json.toJson(request), true);
             return sendAndReceiveResponse(requestJson, timeout);
         }
-        catch (InvalidValueException | JsonProcessingException ignored) {return null;}
+        catch (InvalidValueException | JsonProcessingException ignored) {ignored.printStackTrace(); return null;}
         catch (IOException e) {
             throw new ServerUnreachableException();
         }

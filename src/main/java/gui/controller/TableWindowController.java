@@ -3,7 +3,6 @@ package gui.controller;
 import collection.DAO;
 import collection.ServerDAO;
 import dragon.*;
-import exceptions.NonOKExitException;
 import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import io.Properties;
@@ -14,16 +13,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
 import net.codes.ExitCode;
 import net.codes.Result;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -48,13 +48,19 @@ public class TableWindowController extends Controller implements Initializable {
     private TextField filterField;
     @FXML
     private TableView<Dragon> table;
+    @FXML
+    private ImageView loading;
 
-    private List<Dragon> tableItems;
+    private List<Dragon> tableItems = new ArrayList<>();
 
     private DAO serverDao;
 
     private static final String HOST = "localhost";
     private static final int PORT = 4444;
+
+    private final List<Column> columns = new ArrayList<>();
+
+    private final String[] filterProperties = {"name", "creator name", "id"};
 
     @Override
     protected void localize() {
@@ -66,69 +72,93 @@ public class TableWindowController extends Controller implements Initializable {
         helloText.setText("%s, %s!".formatted(Context.locale.getMsg("hello"), Context.user.login));
         filterField.setPromptText(Context.locale.getMsg("filter"));
         propertyBox.setValue(Context.locale.getMsg("filter"));
-
     }
 
-    private Column[] columns = {
-            new Column("id", null),
-            new Column("name", null),
-            new Column("coordinates", col -> {
-                Column x = new Column("x",
-                        column -> column.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCoordinates().getX().toString())));
-                Column y = new Column("y",
-                        column -> column.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCoordinates().getY().toString())));
+    {
+        Column idColumn = new Column("id");
 
-                col.getColumns().addAll(x.composeColumn(), y.composeColumn());
+        Column nameColumn = new Column("name");
 
-            }),
-            new Column("creationDate", col ->
-                col.setCellValueFactory(callback -> new SimpleStringProperty(Context.locale.formatDate(callback.getValue().getCreationDate())))
-            ),
-            new Column("age", null),
-            new Column("color", col -> col.setCellValueFactory(callback ->
-                    new SimpleStringProperty(callback.getValue().getColor() == null ?
+        Column coordinatesColumn = new Column("coordinates", c -> {
+        });
+        {
+            Column xCoord = new Column("x", c ->
+                    c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCoordinates().getX().toString())));
+
+            Column yCoord = new Column("y", c ->
+                    c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCoordinates().getY().toString())));
+
+            coordinatesColumn.addChildren(xCoord, yCoord);
+        }
+
+        Column creationDateColumn = new Column("creation date", c ->
+                c.setCellValueFactory(callback -> new SimpleStringProperty(Context.locale.formatDate(callback.getValue().getCreationDate()))));
+
+        Column ageColumn = new Column("age");
+
+        Column colorColumn = new Column("color", c -> c.setCellValueFactory(callback ->
+                new SimpleStringProperty(callback.getValue().getColor() == null ?
+                        "null" :
+                        callback.getValue().getColor().getDescription())));
+
+        Column typeColumn = new Column("type", c ->
+                c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getType().getDescription())));
+
+        Column characterColumn = new Column("character", c ->
+                c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCharacter() == null ?
+                        "null" :
+                        callback.getValue().getCharacter().getDescription())));
+
+        Column caveColumn = new Column("cave", c -> {
+        });
+        {
+            Column depth = new Column("depth", c ->
+                    c.setCellValueFactory(callback -> new SimpleStringProperty(String.valueOf(callback.getValue().getCave().getDepth()))));
+
+            Column nTreasures = new Column("number of treasures", c ->
+                    c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCave().getNumberOfTreasures() == null ?
                             "null" :
-                            callback.getValue().getColor().getDescription()))),
+                            callback.getValue().getCave().getNumberOfTreasures().toString())));
 
-            new Column("type", col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getType().getDescription()))),
-            new Column("character",
-                    col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCharacter() == null ?
-                            "null" :
-                            callback.getValue().getCharacter().getDescription()))),
+            caveColumn.addChildren(depth, nTreasures);
+        }
 
-            new Column("cave", col -> {
-                Column depth = new Column("depth", c -> c.setCellValueFactory(callback -> new SimpleStringProperty(String.valueOf(callback.getValue().getCave().getDepth()))));
-                Column nTreasures = new Column("number of treasures", c -> c.setCellValueFactory(callback ->
-                        new SimpleStringProperty(callback.getValue().getCave().getNumberOfTreasures() == null ?
-                                "null" :
-                                callback.getValue().getCave().getNumberOfTreasures().toString())));
+        Column creatorNameColumn = new Column("creator name", c ->
+                c.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCreatorName())));
 
-                col.getColumns().addAll(depth.composeColumn(), nTreasures.composeColumn());
-            }),
-            new Column("creator name", col -> col.setCellValueFactory(callback -> new SimpleStringProperty(callback.getValue().getCreatorName())))
-    };
-
-    private final String[] filterProperties = {"name", "creator name", "id"};
+        columns.add(idColumn);
+        columns.add(nameColumn);
+        columns.add(coordinatesColumn);
+        columns.add(creationDateColumn);
+        columns.add(ageColumn);
+        columns.add(colorColumn);
+        columns.add(typeColumn);
+        columns.add(characterColumn);
+        columns.add(caveColumn);
+        columns.add(creatorNameColumn);
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
             serverDao = new ServerDAO(HOST, PORT);
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
 
         buttonError.setText("");
 
         // load cols
-        Arrays.stream(columns).forEachOrdered(column -> table.getColumns().add(column.composeColumn()));
+        columns.forEach(column -> table.getColumns().add(column.composeColumn()));
         table.getColumns().forEach(col -> col.setPrefWidth(120));
 
         propertyBox.getItems().addAll(filterProperties);
-        //propertyBox.setOnAction(e -> filterTyped(null));
+        propertyBox.setOnAction(e -> filterTyped());
 
+        // blocking part, execute in runtime
         new Thread(() -> {
-            // fill table
             tableItems = serverDao.getAll();
             table.setItems(FXCollections.observableList(tableItems));
+            this.loading.setImage(null);
         }).start();
     }
 
@@ -142,48 +172,41 @@ public class TableWindowController extends Controller implements Initializable {
         reloadTable(tableItems);
     }
 
-    private List<Dragon> getData() {
-        return serverDao.getAll();
-    }
-
-    private static class Column {
-        String label;
-        Consumer<TableColumn<Dragon, String>> additionalCode;
-
-        public Column(String label, Consumer<TableColumn<Dragon, String>> additionalCode) {
-            this.label = label;
-            this.additionalCode = additionalCode;
-        }
-
-        public TableColumn<Dragon, String> composeColumn() {
-            TableColumn<Dragon, String> out = new TableColumn<>(label);
-            if (additionalCode != null)
-                additionalCode.accept(out);
-            else
-                out.setCellValueFactory(new PropertyValueFactory<>(label));
-
-            return out;
-        }
-    }
-
     public void logout(ActionEvent event) throws IOException {
         switchScene(event, "/gui/signInWindow.fxml");
     }
 
-    public void visualization(ActionEvent event) throws IOException {
-        Dragon selected = table.getSelectionModel().getSelectedItem();
-        if (selected == null) {
+    private Dragon checkSelectedItem() {
+        Dragon selectedItem = table.getSelectionModel().getSelectedItem();
+        if (selectedItem == null)
             buttonError.setText(Context.locale.getMsg("no_item_selected"));
+        return selectedItem;
+    }
+
+    private boolean wrongUser(Dragon selectedItem) {
+        boolean notAllowed = !selectedItem.getCreatorName().equals(Context.user.login);
+        if (notAllowed)
+            buttonError.setText("%s: %s".formatted(Context.locale.getMsg("INVALID_INPUT"), Context.locale.getMsg("NO_RIGHTS_TO_MODIFY")));
+        else
+            buttonError.setText("");
+
+        return notAllowed;
+    }
+
+    public void visualization(ActionEvent event) throws IOException {
+        Dragon selected;
+        if ((selected = checkSelectedItem()) == null)
             return;
-        }
+
         VisualizationWindowController controller =
-                openSubStage(event,"/gui/visualizationWindow.fxml", c ->  {
+                openSubStage(event, "/gui/visualizationWindow.fxml", c -> {
                     c.setElement(selected);
                     c.paint();
                 });
     }
 
     public void add(ActionEvent event) throws IOException {
+        buttonError.setText("");
         RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
         Properties properties = controller.getProperties();
         if (properties == null)
@@ -206,16 +229,13 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void update(ActionEvent event) throws IOException {
-        Dragon selectedItem = table.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) {
-            buttonError.setText(Context.locale.getMsg("no_item_selected"));
+        Dragon selectedItem;
+        if ((selectedItem = checkSelectedItem()) == null)
             return;
-        }
-        if (!selectedItem.getCreatorName().equals(Context.user.login)) {
-            buttonError.setText("%s: %s".formatted(Context.locale.getMsg("INVALID_INPUT"), Context.locale.getMsg("NO_RIGHTS_TO_MODIFY")));
+
+        if (wrongUser(selectedItem))
             return;
-        }
-        buttonError.setText("");
+
         RequestWindowController controller = openSubStage(event, "/gui/request.fxml");
         Properties properties = controller.getProperties();
         if (properties == null)
@@ -246,16 +266,13 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void remove(ActionEvent event) throws IOException {
-        Dragon selectedItem = table.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) {
-            buttonError.setText(Context.locale.getMsg("no_item_selected"));
+        Dragon selectedItem;
+        if ((selectedItem = checkSelectedItem()) == null)
             return;
-        }
-        if (!selectedItem.getCreatorName().equals(Context.user.login)) {
-            buttonError.setText("%s: %s".formatted(Context.locale.getMsg("INVALID_INPUT"), Context.locale.getMsg("NO_RIGHTS_TO_MODIFY")));
+
+        if (wrongUser(selectedItem))
             return;
-        }
-        buttonError.setText("");
+
         int idToDelete = selectedItem.getId();
 
         Result result;
@@ -275,7 +292,7 @@ public class TableWindowController extends Controller implements Initializable {
         table.refresh();
     }
 
-    public void filterTyped(KeyEvent event) {
+    public void filterTyped() {
         String filter = filterField.getText().trim();
         if (filter.isEmpty()) {
             reloadTable(tableItems);
@@ -303,4 +320,34 @@ public class TableWindowController extends Controller implements Initializable {
         };
     }
 
+    private static class Column {
+        private final String label;
+        private Consumer<TableColumn<Dragon, String>> additionalCode;
+        private final List<Column> children = new ArrayList<>();
+
+        public Column(String label) {
+            this.label = label;
+        }
+
+        public Column(String label, Consumer<TableColumn<Dragon, String>> additionalCode) {
+            this.label = label;
+            this.additionalCode = additionalCode;
+        }
+
+        public TableColumn<Dragon, String> composeColumn() {
+            TableColumn<Dragon, String> out = new TableColumn<>(label);
+            if (additionalCode != null)
+                additionalCode.accept(out);
+            else
+                out.setCellValueFactory(new PropertyValueFactory<>(label));
+
+            children.forEach(column -> out.getColumns().add(column.composeColumn()));
+
+            return out;
+        }
+
+        public void addChildren(Column... columns) {
+            children.addAll(List.of(columns));
+        }
+    }
 }

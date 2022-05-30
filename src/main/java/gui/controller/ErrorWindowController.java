@@ -33,8 +33,8 @@ public class ErrorWindowController extends Controller implements Initializable{
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        errorMessage.setText("");
-        errorInfo.setText("");
+        //default message
+        displayMsg(ExitCode.SERVER_ERROR, EventCode.SERVER_UNREACHABLE);
     }
 
     public void displayMsg(ExitCode exitCode, EventCode eventCode) {

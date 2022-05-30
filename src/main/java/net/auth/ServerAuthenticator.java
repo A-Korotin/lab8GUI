@@ -14,7 +14,7 @@ public class ServerAuthenticator {
 
     private final Client client;
 
-    private static final int TIMEOUT = 10;
+    private static final long TIMEOUT = 5L; // sec
 
     public ServerAuthenticator(String host, int port) throws IOException {
         client = new Client(host, port);

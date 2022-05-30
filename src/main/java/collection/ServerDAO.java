@@ -24,7 +24,7 @@ import java.util.Optional;
 public class ServerDAO implements DAO {
     private final Client client;
 
-    private static final long TIMEOUT = 10L; //sec
+    private static final long TIMEOUT = 5L; //sec
 
     public ServerDAO(String host, int port) throws IOException {
         client = new Client(host, port);
