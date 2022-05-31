@@ -6,6 +6,7 @@ import dragon.*;
 import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
 import io.Properties;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -55,6 +56,8 @@ public class TableWindowController extends Controller implements Initializable {
 
     private DAO serverDao;
 
+    private Thread worker;
+
     private static final String HOST = "localhost";
     private static final int PORT = 4444;
 
@@ -72,6 +75,34 @@ public class TableWindowController extends Controller implements Initializable {
         helloText.setText("%s, %s!".formatted(Context.locale.getMsg("hello"), Context.user.login));
         filterField.setPromptText(Context.locale.getMsg("filter"));
         propertyBox.setValue(Context.locale.getMsg("filter"));
+    }
+
+
+    private void runWorker() {
+        Runnable task = () -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(20_000); //todo busy-waiting
+                } catch (InterruptedException ignored){
+                    break;
+                }
+                try {
+                    tableItems = serverDao.getAll();
+                }  catch (ServerUnreachableException ignored) {
+                    Runnable errorWindow = () -> {
+                        try {
+                            // pass nay node to get window from it
+                            openSubStage(table, "/gui/errorWindow.fxml", c->{});
+                        } catch (IOException e) {e.printStackTrace();}
+                    };
+                    // run error window in javafx thread
+                    Platform.runLater(errorWindow);
+                }
+            }
+        };
+        worker = new Thread(task);
+        worker.setDaemon(true);
+        worker.start();
     }
 
     {
@@ -160,6 +191,8 @@ public class TableWindowController extends Controller implements Initializable {
             table.setItems(FXCollections.observableList(tableItems));
             this.loading.setImage(null);
         }).start();
+
+        runWorker();
     }
 
     public void reloadTable(List<Dragon> items) {
@@ -173,6 +206,7 @@ public class TableWindowController extends Controller implements Initializable {
     }
 
     public void logout(ActionEvent event) throws IOException {
+        worker.interrupt();
         switchScene(event, "/gui/signInWindow.fxml");
     }
 

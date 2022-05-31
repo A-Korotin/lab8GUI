@@ -38,10 +38,15 @@ public abstract class Controller {
     }
 
     private<T> StageAndController<T> loadSubStage(ActionEvent event, String sceneFile) throws IOException {
+        Node source = (Node) event.getSource();
+        return loadSubStage(source, sceneFile);
+    }
+
+    private<T> StageAndController<T> loadSubStage(Node source, String sceneFile) throws IOException {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(Context.class.getResource(sceneFile));
         Stage subStage = new Stage();
-        Stage parentStage = (Stage)((Node)event.getSource()).getScene().getWindow();
+        Stage parentStage = (Stage)(source).getScene().getWindow();
         subStage.initOwner(parentStage);
         subStage.initModality(Modality.WINDOW_MODAL);
         Scene scene = new Scene(loader.load());
@@ -70,6 +75,15 @@ public abstract class Controller {
 
     public final<T> T openSubStage(ActionEvent event, String sceneFile, Consumer<T> additional)  throws IOException{
         StageAndController<T> stageAndController = loadSubStage(event, sceneFile);
+        Stage subStage = stageAndController.stage;
+        T controller = stageAndController.controller;
+        additional.accept(controller);
+        subStage.showAndWait();
+        return controller;
+    }
+
+    public final<T> T openSubStage(Node source, String sceneFile, Consumer<T> additional) throws IOException {
+        StageAndController<T> stageAndController = loadSubStage(source, sceneFile);
         Stage subStage = stageAndController.stage;
         T controller = stageAndController.controller;
         additional.accept(controller);

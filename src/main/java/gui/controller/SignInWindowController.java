@@ -2,24 +2,19 @@ package gui.controller;
 
 import exceptions.ServerUnreachableException;
 import gui.controller.context.Context;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
 import locale.Locale;
 import net.auth.ServerAuthenticator;
 import net.auth.User;
-import net.codes.EventCode;
-import net.codes.ExitCode;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -103,23 +98,31 @@ public class SignInWindowController extends Controller implements Initializable 
             errorText.setText(Context.locale.getMsg("empty_login_or_password"));
             return;
         }
-        User user = new User(log, pass);
-        boolean validUser;
-        try {
-            validUser = authenticator.isValidUser(user);
-        } catch (ServerUnreachableException e) {
-            ErrorWindowController controller =
-                    openSubStage(event, "/gui/errorWindow.fxml");
-            handleErrorWindow(controller.getButtonPressed(), rootPane);
-            return;
-        }
+        Runnable task = () -> {
+            User user = new User(log, pass);
+            boolean validUser;
+            try {
+                validUser = authenticator.isValidUser(user);
+            } catch (ServerUnreachableException e) {
+                ErrorWindowController controller =
+                        null;
+                try {
+                    controller = openSubStage(event, "/gui/errorWindow.fxml");
+                } catch (IOException ignored) {}
+                handleErrorWindow(controller.getButtonPressed(), rootPane);
+                return;
+            }
 
-        if (!validUser)
-            errorText.setText(Context.locale.getMsg("invalid_login_or_password"));
-        else {
-            Context.user = user;
-            switchScene(event, "/gui/table.fxml");
-        }
+            if (!validUser)
+                errorText.setText(Context.locale.getMsg("invalid_login_or_password"));
+            else {
+                Context.user = user;
+                try {
+                    switchScene(event, "/gui/table.fxml");
+                } catch (IOException ignored) {}
+            }
+        };
+        Platform.runLater(task);
     }
 
     public void reloadLocale(ActionEvent event) {
