@@ -82,21 +82,23 @@ public class TableWindowController extends Controller implements Initializable {
         Runnable task = () -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    Thread.sleep(20_000); //todo busy-waiting
-                } catch (InterruptedException ignored){
-                    break;
-                }
-                try {
                     tableItems = serverDao.getAll();
+                    reloadTable(tableItems); // todo filter resets whenever worker is reloading table
+                    loading.setImage(null);
                 }  catch (ServerUnreachableException ignored) {
                     Runnable errorWindow = () -> {
                         try {
-                            // pass nay node to get window from it
+                            // pass any node to get window from it
                             openSubStage(table, "/gui/errorWindow.fxml", c->{});
                         } catch (IOException e) {e.printStackTrace();}
                     };
                     // run error window in javafx thread
                     Platform.runLater(errorWindow);
+                }
+                try {
+                    Thread.sleep(20_000); //todo busy-waiting
+                } catch (InterruptedException ignored){
+                    break;
                 }
             }
         };
@@ -184,14 +186,15 @@ public class TableWindowController extends Controller implements Initializable {
 
         propertyBox.getItems().addAll(filterProperties);
         propertyBox.setOnAction(e -> filterTyped());
+        table.setItems(FXCollections.observableList(tableItems));
+        // init table in runtime
+//        new Thread(() -> {
+//            tableItems = serverDao.getAll();
+//            table.setItems(FXCollections.observableList(tableItems));
+//            loading.setImage(null);
+//        }).start();
 
-        // blocking part, execute in runtime
-        new Thread(() -> {
-            tableItems = serverDao.getAll();
-            table.setItems(FXCollections.observableList(tableItems));
-            this.loading.setImage(null);
-        }).start();
-
+        // worker to update elements every 20 seconds
         runWorker();
     }
 
