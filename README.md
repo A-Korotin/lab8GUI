@@ -1,9 +1,9 @@
 # lab8GUI
 
-## Sign in window
+### Sign in window
 
 ![sign in](Sign%20in.png)
 
-## Table window
+### Table window
 
 ![table](table.png)
